@@ -1,3 +1,29 @@
-一个基于linux 环境的C++网络库，目的能在内网中实现高并发多线程的网络库,是一个基于Reactor模式的事件驱动网络库，
-当fd可读可写等事件时自动调用我们写的函数，所以，我们只需要关注注册函数，实现逻辑运算等。网络情况由网络库搞定
+一个基于linux 环境的C++网络库，目的能在内网中实现高并发多线程的网络库,是一个基于Reactor(non-blocking IO+IO multiplexing)模式的事件驱动网络库，
+当fd可读可写等事件时自动调用我们写的函数，所以，我们只需要关注注册函数，实现业务逻辑运算等。网络情况由网络库搞定
 
+Reactor 基本结构就是个事件循环,以事件驱动和事件回调方式实现业务逻辑
+
+//演示代码
+while(!quit)
+{
+  epoll 或者poll 取得活动事件
+  调用对应处理函数处理可读可写错误事件
+}
+//禁止本类或者继承类被赋值和复制
+class Noncopyable  
+{  
+public:  
+ Noncopyable() {}  
+ virtual ~Noncopyable() {}  
+  
+private:  
+ Noncopyable(const Noncopyable &right);  
+ Noncopyable &operator=(const Noncopyable &right);  
+};  
+class EventLoop :public Noncopyable  //Noncopyable禁止本类或者继承类被赋值和复制
+{
+  public:
+    EventLoop();
+    ~EventLoop();
+    void loop();  //大循环 
+}
