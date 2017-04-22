@@ -64,10 +64,11 @@ void socketer::listener()
 const int socketer::accetper()
 {
     //int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+    
     int acceptfd = accept(fd_, (struct sockaddr*)NULL, NULL);
        // printf("accept socket error: %s(errno: %d)",strerror(errno),errno);
         //continue;
-    
+    printf("listfd=%d,clinetfd=%d\n",fd_,acceptfd);
     if (acceptfd >= 0) {
         setNonBlock(acceptfd);
        // handleSocket = new Socket();
@@ -86,17 +87,39 @@ int connecter(int sockfd, const struct sockaddr* addr)
 {
     return ::connect(sockfd, addr, static_cast<socklen_t>(sizeof(struct sockaddr_in)));
 }
-void reader(const int fd)
+ void reader(const int fd)
 {
-    char* buf=0;
-    size_t len= read(fd,buf ,1);
-    printf("len=%d,buf=%s\n",len,buf);
+    char buf[20];
+    //size_t len= read(fd,buf ,1);
+   // printf("len=%d,buf=%s\n",len,buf);
+    int res;
+    do {
+        res =read(fd, buf, 15);
+        if (res > 0) {
+            //TBSYS_LOG(INFO, "∂¡»Î ˝æ›, fd=%d, addr=%d", _socketHandle, res);
+           // TBNET_COUNT_DATA_READ(res);
+        }
+    } while (res < 0 && errno == EINTR);
+    
+    printf("read res=%d,fd=%d\n",res,fd);
+   // return res;
    
 }
-void write(const int fd,char* buf)
+ void writer(const int fd,char* buf,int len)
 {
-    ssize_t len= write (fd,buf,1);
-    printf("len=%d,buf=%s\n",len,buf);
+    //ssize_t len= write (fd,buf,1);
+    //printf("len=%d,buf=%s\n",len,buf);
+    ssize_t res;
+    do {
+        res = write(fd, (void*)buf, len);
+        if (res > 0) {
+            //TBSYS_LOG(INFO, "–¥≥ˆ ˝æ›, fd=%d, addr=%d", _socketHandle, res);
+            //TBNET_COUNT_DATA_WRITE(res);
+        }
+    } while (res < 0 && errno == EINTR);
+    printf("write res=%d,fd=%d\n",res,fd);
+    printf(" write error: %s(errno: %d)\n",strerror(errno),errno);
+    
 }
 void setNonBlock(int sockfd)
 {

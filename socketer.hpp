@@ -29,8 +29,8 @@ private:
     const int port_  ;
     const int fd_;
 };
-void reader(const int fd);
-void writer(const int fd,char* buf);
+extern void  reader(const int fd);
+extern void  writer(const int fd,char* buf,int len);
 void setNonBlock(int sockfd);
 int getLastError();
 #endif /* socketer_hpp */

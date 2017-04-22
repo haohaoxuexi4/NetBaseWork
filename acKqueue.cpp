@@ -10,6 +10,7 @@
 #include <memory.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #define ININSIZE 500
 
@@ -21,6 +22,7 @@ acKqueue::acKqueue(EventLoop* loop):kqfd(kqueue()),eventloop(loop),events(ININSI
        return ;
    }
    // memset(&events,0,sizeof(struct kevent)*events.size());
+
 }
 
 acKqueue::~acKqueue()
@@ -109,14 +111,16 @@ void acKqueue::aeApiDelEvent(EventLoop *eventLoop, int fd, int mask) {
 int acKqueue::aeApiAddEvent(Channel* chan) {
     
     struct kevent ke;
-    int mask=chan->getmask();
+    int mask=chan->getevents();
     int fd=chan->getfd();
-    
+    printf("fd=%d,mask=%d\n",chan->getfd(),mask);
     if (mask & EVFILT_READ) {
+        printf("read\n");
         EV_SET(&ke, fd, EVFILT_READ, EV_ADD|EV_ENABLE, 0, 0, chan);
         if (kevent(kqfd, &ke, 1, NULL, 0, NULL) == -1) return -1;
     }
-    if (mask & EVFILT_WRITE) {
+    else if (mask & EVFILT_WRITE) {
+        printf("write\n");
         EV_SET(&ke, fd, EVFILT_WRITE, EV_ADD|EV_ENABLE, 0, 0, chan);
         if (kevent(kqfd, &ke, 1, NULL, 0, NULL) == -1) return -1;
         
@@ -126,7 +130,7 @@ int acKqueue::aeApiAddEvent(Channel* chan) {
 }
 
 void acKqueue::aeApiDelEvent(Channel* chan) {
-    int mask=chan->getmask();
+    int mask=chan->getevents();
     int fd=chan->getfd();
     
     struct kevent ke;
@@ -136,14 +140,14 @@ void acKqueue::aeApiDelEvent(Channel* chan) {
         kevent(kqfd, &ke, 1, NULL, 0, NULL);
         
     }
-    if (mask & EVFILT_WRITE) {
+    else if (mask & EVFILT_WRITE) {
         EV_SET(&ke, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
         kevent(kqfd, &ke, 1, NULL, 0, NULL);
     }
     
 
 }
-int acKqueue::aeApiPoll(channellist* activechannel) {
+int acKqueue::aeApiPoll(std::vector<Channel*>* activechannel) {
     
     int retval, numevents = 0;
     
@@ -157,7 +161,7 @@ int acKqueue::aeApiPoll(channellist* activechannel) {
     //} else {
       //  retval = kevent(kqfd, NULL, 0, &(*events.begin()),(int)events.size(),NULL);
    // }
-    
+    int savedErrno=errno;
     
     if (retval > 0) {
         
@@ -169,21 +173,42 @@ int acKqueue::aeApiPoll(channellist* activechannel) {
             if((*iter).filter==EVFILT_READ)
             {
                 Channel* chan=(Channel*)((*iter).udata);
-                chan->setflag(EVFILT_READ);
+                chan->setflag((*iter).filter);
                 //chan->flags=EVFILT_READ;
                 //chan->handleReadyEvent();
                 //chan->flags=EVFILT_READ;
+                printf("ackueue EVFILE_READ fd=%d,revents=%d\n",chan->getfd(),chan->getflag());
                 activechannel->push_back(chan);
                 //printf("actie channelsize=%d",activechannel.size());
             }
             if((*iter).filter==EVFILT_WRITE)
             {
                 Channel* chan= (Channel*)((*iter).udata);
-                chan->setflag(EVFILT_WRITE);
+                chan->setflag((*iter).filter);
+                printf("ackueue EVFILE_WRITE fd=%d,revents=%d\n",chan->getfd(),chan->getflag());
                 activechannel->push_back(chan);
             }
+            
+        }
+        
+
+        if (retval==events.size()&& retval<1000) {
+            events.resize(events.size()*2);
         }
        
+    }
+    else if (retval == 0)
+    {
+       // printf("nothing happended\n");
+    }
+    else
+    {
+        // error happens, log uncommon ones
+        if (savedErrno != EINTR)
+        {
+            errno = savedErrno;
+            printf( "EPollPoller::poll()\n");
+        }
     }
     return numevents;
 }

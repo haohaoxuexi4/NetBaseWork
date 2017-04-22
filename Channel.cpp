@@ -8,14 +8,17 @@
 
 #include "Channel.hpp"
 #include "EventLoop.hpp"
-Channel::Channel(EventLoop* loop,int fd):eventloop(loop),fd_(fd),flags(0),mask_(EVFILT_READ)
+Channel::Channel(EventLoop* loop,int fd):eventloop(loop),fd_(fd),flags(0),events_(KqNoneEvent)
 {
 
 }
 
 Channel::~Channel()
 {
-
+    removetoloop();
+    events_=KqNoneEvent;
+    eventloop=nullptr;
+    flags=0;
 }
 void Channel::addtoloop()
 {
@@ -28,7 +31,7 @@ void Channel::removetoloop()
 
 void Channel::handleReadyEvent()
 {
-    printf("flages=%d\n",flags);
+    printf("who fd=%d,flages=%d\n",this->getfd(),getflag());
     if (getflag()==EVFILT_READ)
     {
         readevent();
@@ -37,9 +40,14 @@ void Channel::handleReadyEvent()
     {
         writeEvent();
     }
-    if(getflag()==999)
+    if(getflag()==(EV_ERROR|EV_EOF))
     {
+        printf("CLOSE EVENT\n");
         closeEvent();
+    }
+    else
+    {
+        close(this->getfd());
     }
     
     /*

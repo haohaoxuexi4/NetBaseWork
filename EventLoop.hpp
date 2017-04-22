@@ -14,8 +14,10 @@
 #include "Channel.hpp"
 #include <vector>
 #include "acKqueue.hpp"
+#include "Timer.hpp"
+
 using namespace std;
-//class acKqueue{};
+
 
 class EventLoop:public noncopy{
 public:
@@ -25,10 +27,17 @@ public:
     void setquitloop();
     void addchannel(Channel* channel);
     void removechannel(Channel* channel);
+    
+    //timer 定时器操作
+    void addtimer(Timer* ptime);
+    void canceltimer(Timer* ptime);
 private:
     bool quit;
     std::vector<Channel*> ChannelVector;
-    acKqueue* ackqueue;
+    //acKqueue* ackqueue;
+    std::unique_ptr<acKqueue> unique_ackqueue;
+    std::vector<Timer*> TimerVector;
+    
 };
 
 #endif /* EventLoop_hpp */

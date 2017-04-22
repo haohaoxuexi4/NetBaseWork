@@ -14,6 +14,10 @@
 #include <functional>
 
 using namespace std;
+
+const int KqNoneEvent=0;   //初始状态
+const int KqReadEvent=-1; //EVFILT_READ;
+const int KqWriteEvent=-2; //EVFILT_WRITE
 class EventLoop;
 typedef std::function<void ()> Fun;
 class Channel:public noncopy{
@@ -24,11 +28,30 @@ public:
     
     void   addtoloop();
     void   removetoloop();
-    int    getmask(){ return mask_;};
-    void   setmask(int mask) {mask_=mask;};
+    int    getevents(){ return events_;};
+    void   setevents(int event) {events_=event;};
     int    getflag(){ return flags;};
     void   setflag(int flag) {flags=flag;};
     int             getfd(){return fd_;};
+    
+    
+    void enableReading() { events_ = KqReadEvent; addtoloop(); }
+    void enableWriting() { events_ = KqWriteEvent; addtoloop(); }
+    
+    void enableReadingWriting(){events_=(KqReadEvent|KqWriteEvent);addtoloop();}
+    
+    void disableWriting() { events_ = KqWriteEvent; removetoloop(); }
+    void disableReading() { events_ = KqReadEvent; removetoloop(); }
+    
+     /*
+    void enableWriting() { events_ |= KqWriteEvent; addtoloop(); }
+    void disableWriting() { events_ &= ~KqWriteEvent; removetoloop(); }
+    void disableAll() { events_ = KqNoneEvent; removetoloop(); }
+    */
+    bool isWriting() const { return events_ & KqWriteEvent; }
+    bool isReading() const { return events_ & KqReadEvent; }
+
+   // void update(){}
     void setreadEvent(const Fun& cb)
     {
         readevent=cb;
@@ -45,8 +68,8 @@ public:
 private:
     
     const int fd_;
-    int  flags;//事件标识
-    int   mask_;    //事件标识
+    int  flags;//事件标识  // revents
+    int   events_;    //事件标识
     Fun  readevent;   //可读
     Fun   writeEvent;  //可写
     Fun  closeEvent;  //关闭

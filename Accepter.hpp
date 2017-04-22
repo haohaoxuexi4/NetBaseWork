@@ -14,19 +14,23 @@
 #include "Channel.hpp"
 #include "socketer.hpp"
 #include  <functional>
-
+//#include "TcpConnection.hpp"
 class EventLoop;
 
 typedef std::function<void()> acceptFun;
+typedef std::function<void(int)> initTcpConnectionFun;
 class Accepter:noncopy{
     
 public:
-    Accepter(EventLoop* loop,const char* ip,int port);
+    Accepter(EventLoop* loop,const char* ip,const int port);
     ~Accepter();
     void listen();
+    void setInitTcpConnectionFun(const initTcpConnectionFun& fun);
+    
 private:
     void handleAccetpEvent();
     
+    initTcpConnectionFun  connectionfun;
     socketer  socker_;
     Channel   accepetChannel;
     EventLoop*  eventloop_;

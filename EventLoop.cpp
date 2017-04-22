@@ -8,9 +8,9 @@
 #include <assert.h>
 #include "EventLoop.hpp"
 //#include "acKqueue.hpp"
-EventLoop::EventLoop():quit(false)
+EventLoop::EventLoop():quit(false),unique_ackqueue(new acKqueue(this))
 {
-    ackqueue=new acKqueue(this);
+    //ackqueue=new acKqueue(this);
     printf("EventLoop\n");
 }
 EventLoop::~EventLoop()
@@ -20,12 +20,13 @@ EventLoop::~EventLoop()
 void EventLoop::addchannel(Channel* channel)
 {
     assert(channel!=NULL);
-    ackqueue->aeApiAddEvent(channel);
+    
+    unique_ackqueue->aeApiAddEvent(channel);
 }
 void EventLoop::removechannel(Channel* channel)
 {
     assert(channel!=NULL);
-    ackqueue->aeApiDelEvent(channel);
+    unique_ackqueue->aeApiDelEvent(channel);
 }
 void EventLoop::loop()
 {
@@ -49,20 +50,27 @@ void EventLoop::loop()
 #endif
  ********************/
     
-        int activenum=ackqueue->aeApiPoll(&ChannelVector);
-        printf("activenum=%d\n",ChannelVector.size());
+        int activenum=unique_ackqueue->aeApiPoll(&ChannelVector);
+        //printf("activenum=%d\n",ChannelVector.size());
+        
+        
         
         // 根据channel标识，，调用事件
-        for(auto iter=ChannelVector.begin();iter!=ChannelVector.end();iter++)
+        for(auto iter=ChannelVector.begin();iter!=ChannelVector.end();++iter)
         {
-            printf("chanelvetctonum=%d\n",ChannelVector.size());
-            (*iter)->handleReadyEvent();
+            printf("chanelvetctonum=%d,fd=%d,revents=%d\n",ChannelVector.size(),(*iter)->getfd(),(*iter)->getflag());
+            Channel* currchannel=*iter;
+            currchannel->handleReadyEvent();
         }
         
         //处理定时事件
-        
-        
-    
+        /*
+        struct timeval nowtime;
+        gettimeofday(&nowtime, NULL);
+        for (auto itertime=TimerVector.begin(); itertime!=TimerVector.end(); itertime++) {
+            
+        }
+         */
     }
 }
 

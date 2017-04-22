@@ -12,6 +12,7 @@
 #include "fastjson.hpp"
 #include <stdio.h>
 #include <stdlib.h>
+#include "TcpServer.hpp"
 const char* getconfig()
 {
 
@@ -50,8 +51,7 @@ int main(int argc, const char * argv[]) {
     
     FastJson json3("{\"serverip\":\"192.168.0.6\",\"serverport\":8080}");
     printf("parseconde=%d\n",json3.fastjson_parse());
-   // printf("man stirng =%s",json3.fastjson_getobjectkey(0));
-    
+
     jsonValue* ip=json3.fastjson_getobjectone(0);
     jsonValue* port=json3.fastjson_getobjectone(1);
     char* ip1=ip->u.s.addr;
@@ -60,11 +60,13 @@ int main(int argc, const char * argv[]) {
     
     
     EventLoop goloop;
-    Accepter accept(&goloop,"192.168.0.6",port1);
-    accept.listen();
-    goloop.loop();
     
-    
+    //Accepter accept(&goloop,"192.168.0.6",port1);
+    //accept.listen();
+    //goloop.loop();
+
+    TcpServer server(&goloop,"192.168.0.6",port1);
+    server.start();
     json3.valuefree();
     
 

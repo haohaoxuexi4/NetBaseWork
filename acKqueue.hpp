@@ -20,19 +20,17 @@
 #endif /* acKqueue_hpp */
 
 class EventLoop;
-
-typedef std::vector<Channel*> channellist;
+//typedef std::vector<Channel*> channellist;
 class acKqueue
 {
 public:
     acKqueue(EventLoop* loop);
     ~acKqueue();
     const char *aeApiName(void);
-    //int aeApiAddEvent(EventLoop *eventLoop, int fd, int mask);
-   // void aeApiDelEvent(EventLoop *eventLoop, int fd, int mask);
+
     int aeApiAddEvent(Channel* chan);
     void aeApiDelEvent(Channel* chan);
-    int aeApiPoll(channellist* activechannel );
+    int aeApiPoll(std::vector<Channel*>* activechannel );
     
 private:
     const int kqfd;

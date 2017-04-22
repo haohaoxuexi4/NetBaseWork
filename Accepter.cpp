@@ -9,11 +9,12 @@
 #include "Accepter.hpp"
 //#include "EventLoop.cpp"
 #include <functional>
-Accepter::Accepter(EventLoop* loop,const char* ip,int port):eventloop_(loop),socker_(ip,port),                                                           accepetChannel(loop,socker_.getsocketfd())
+#include <memory>
+
+//class TcpConnection;
+Accepter::Accepter(EventLoop* loop,const char* ip,const int port):eventloop_(loop),socker_(ip,port),                                                           accepetChannel(loop,socker_.getsocketfd())
 {
     accepetChannel.setreadEvent(std::bind(&Accepter::handleAccetpEvent, this));
-    //accepetChannel.setwriteEvent(std::bind(&Accepter::handleAccetpEvent,this));
-    //accepetChannel.addtoloop(); //自己加入到loop中
 }
 
 Accepter::~Accepter()
@@ -21,21 +22,31 @@ Accepter::~Accepter()
 
 }
 
-
+void Accepter::setInitTcpConnectionFun(const initTcpConnectionFun& fun)
+{
+    connectionfun=fun;
+}
 void Accepter::listen()
 {
     socker_.binder();
     socker_.listener();
-    accepetChannel.addtoloop(); //自己加入到loop中
-   // size_t clientfd=socker_.accetper();
+   // accepetChannel.addtoloop(); //自己加入到loop中
+    accepetChannel.enableReading();
     
 }
 void Accepter::handleAccetpEvent()
 {
-    if(int clientfd=socker_.accetper()>0)
-    {
-        printf("fd=%d\n",clientfd);
-    }
-
+    int clientfd=socker_.accetper();
+    
+    printf("client fd=%d\n",clientfd);
+        //封装一次连接
+    connectionfun(clientfd);
+        //封装成一次连接 TcpConnection
+       // std::shared_ptr<TcpConnection> tcpconn(new TcpConnection(eventloop_,clientfd));
+       // TcpConnection tcpconn(eventloop_,clientfd);
+        
+        
+    
+    
     
 }
