@@ -7,18 +7,7 @@
 //
 
 #include "socketer.hpp"
-#include <errno.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <stdint.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+
 
 socketer::socketer(const char* ip,const int port):fd_(socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)),ip_(ip),port_(port)
 {

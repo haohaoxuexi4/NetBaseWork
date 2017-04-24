@@ -56,10 +56,18 @@ void Buffer::send(string sd,int len)
 
 }
  */
+void TcpConnection::Shutdownbyown()
+{
 
+}
+void TcpConnection::DestoryConnection()
+{
+
+}
 void TcpConnection::ChannelCloseEvent()
 {
     //首先把自己从TcpServer  connectionmap 中移除
+    removeConnection_(this);
     
 }
 void TcpConnection::ChannelReadEvent()
@@ -71,6 +79,9 @@ void TcpConnection::ChannelReadEvent()
     if (n>0)
     {
         // message callback
+        if (MessageCallback_) {
+            MessageCallback_(this,iputbuffer);
+        }
         
     }else if (n==0)
     {

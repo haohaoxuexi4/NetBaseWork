@@ -25,6 +25,20 @@ void TcpServer::start()
     unique_accepter->listen();
     loop_->loop();
 }
+void TcpServer::remove_connection_from_connectionMap(TcpConnection *conn)
+{
+    assert(conn!=nullptr);
+    char* name=conn->getname();
+    connectionMap.erase(name);
+    if ((conn->getOutBudder()).readableSize()==0) { //TcpConnection 中待发送的数据(Buffer outbufrer)全部发完
+        conn->DestoryConnection();                //彻底毁灭
+    }
+    else
+    {
+        conn->setStat(disConnecting); //断连接中 等待缓冲区数据发送完
+        
+    }
+}
 
 void TcpServer::newTcpConnection(const int fd)
 {
@@ -32,15 +46,10 @@ void TcpServer::newTcpConnection(const int fd)
     sprintf(buf,"newconnectionfd=%d",fd);
     TcpConnection* newcon(new TcpConnection(loop_,fd));
     newcon->setname(buf,sizeof(buf));
-    
+    newcon->setStat(connecting);
+    newcon->setMessageCallback(messagecallback);
+    newcon->setRemoveConnection(std::bind(&TcpServer::remove_connection_from_connectionMap,this,std::placeholders::_1));
     connectionMap[buf]=newcon;
 }
 
-void TcpServer::remove_connection_from_connectionMap(TcpConnection *conn)
-{
-    assert(conn!=nullptr);
-    char* name=conn->getname();
-    connectionMap.erase(name);
-    //conn->setStat(disConnecting); //断连接中
-}
 

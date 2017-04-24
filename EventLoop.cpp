@@ -34,27 +34,8 @@ void EventLoop::loop()
     while(!quit)
     {
         ChannelVector.clear();
-        
-        // 找 i/o 复用机制，传入channelVector ，返回获取到最新的可用channel
-        //判断 操作系统   适合linux的epoll和 macos的kqueue
-
-/****************
-#ifdef
-        
-        
-#endif
-
-#ifdef
-        
-        
-#endif
- ********************/
-    
-        int activenum=unique_ackqueue->aeApiPoll(&ChannelVector);
+         int activenum=unique_ackqueue->aeApiPoll(&ChannelVector);
         //printf("activenum=%d\n",ChannelVector.size());
-        
-        
-        
         // 根据channel标识，，调用事件
         for(auto iter=ChannelVector.begin();iter!=ChannelVector.end();++iter)
         {

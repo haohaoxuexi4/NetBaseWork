@@ -17,6 +17,7 @@
 #include "EventLoop.hpp"
 #include "TcpConnection.hpp"
 
+typedef std::function<void(TcpConnection*,Buffer&)> MessageCallback;
 class TcpServer:noncopy
 {
 public:
@@ -25,11 +26,17 @@ public:
     void start();
     void newTcpConnection(const int fd);
     void remove_connection_from_connectionMap(TcpConnection* conn);
+    void setMessageCallback(MessageCallback& back){messagecallback=back;};
+    
+    //void destoryConnection(TcpConnection* conn);//彻底的毁灭掉连接
+    //void ShutdownbyOwn(TcpConnection* conn);  //拥有者主动关闭连接
 private:
+    
     EventLoop* loop_;
     std::map<std::string, TcpConnection*> connectionMap;
     std::unique_ptr<Accepter> unique_accepter;
-    //Accepter accepter;
+    MessageCallback  messagecallback;  //消息处理函数
+    
 };
 
 #endif /* TcpServer_hpp */

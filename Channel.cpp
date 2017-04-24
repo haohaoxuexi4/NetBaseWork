@@ -47,7 +47,7 @@ void Channel::handleReadyEvent()
     }
     else
     {
-        close(this->getfd());
+        //close(this->getfd());
     }
     
     /*

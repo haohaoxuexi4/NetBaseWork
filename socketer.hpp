@@ -11,6 +11,16 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 class socketer
 {
 public:
