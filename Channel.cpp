@@ -10,11 +10,12 @@
 #include "EventLoop.hpp"
 Channel::Channel(EventLoop* loop,int fd):eventloop(loop),fd_(fd),flags(0),events_(KqNoneEvent)
 {
-
+   // printf("channel::channel fd=%d",fd_);
 }
 
 Channel::~Channel()
 {
+    printf("Channel::~Channel()\n");
     removetoloop();
     events_=KqNoneEvent;
     eventloop=nullptr;
@@ -22,6 +23,7 @@ Channel::~Channel()
 }
 void Channel::addtoloop()
 {
+    printf("channel this fd=%d\n",this->getfd());
     eventloop->addchannel(this);
 }
 void Channel::removetoloop()
@@ -31,16 +33,17 @@ void Channel::removetoloop()
 
 void Channel::handleReadyEvent()
 {
-    printf("who fd=%d,flages=%d\n",this->getfd(),getflag());
-    if (getflag()==EVFILT_READ)
+    printf("who fd=%d,flages=%d\n",this->getfd(),this->getflag());
+    //int fd=this->getfd();
+    if (this->getflag()==EVFILT_READ)
     {
         readevent();
     }
-    if (getflag()==EVFILT_WRITE)
+    if (this->getflag()==EVFILT_WRITE)
     {
         writeEvent();
     }
-    if(getflag()==(EV_ERROR|EV_EOF))
+    if(this->getflag()==(EV_ERROR|EV_EOF))
     {
         printf("CLOSE EVENT\n");
         closeEvent();

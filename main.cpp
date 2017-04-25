@@ -46,6 +46,20 @@ const char* getconfig()
 
 int main(int argc, const char * argv[]) {
     
+    //gnu mode
+#ifndef __STRICT_ANSI__
+    std::cout << "GNU - ";
+#endif
+    
+    // C++ iso standard
+#if __cplusplus == 199711L
+    std::cout << "C++98" << std::endl;
+#elif __cplusplus == 201103L
+    std::cout <<  "C++11" << std::endl;
+#elif __cplusplus > 201103L
+    std::cout <<  "C++14" << std::endl;
+#endif
+
     //const char* pconfigfile=getconfig();
     //printf("config=%s\n",pconfigfile);
     

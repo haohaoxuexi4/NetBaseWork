@@ -18,7 +18,7 @@
 
 using namespace std;
 
-
+typedef std::function<void()> FunInloop;
 class EventLoop:public noncopy{
 public:
     EventLoop();
@@ -31,6 +31,9 @@ public:
     //timer 定时器操作
     void addtimer(Timer* ptime);
     void canceltimer(Timer* ptime);
+    
+    //loop funcation 主要处理运行传递下来的函数对象
+    void addFunInloop(const FunInloop& cb){cb();}//allFunInloop.push_back(cb);}
 private:
     bool quit;
     std::vector<Channel*> ChannelVector;
@@ -38,6 +41,7 @@ private:
     std::unique_ptr<acKqueue> unique_ackqueue;
     std::vector<Timer*> TimerVector;
     
+    std::vector<FunInloop> allFunInloop;
 };
 
 #endif /* EventLoop_hpp */

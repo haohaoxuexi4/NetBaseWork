@@ -319,7 +319,7 @@ int FastJson::fastjson_parse_string_objectkey(const char* json)  //解析object 
             default: jsoncontex.contexstring.push_back(c);
         }
     }
-    jsoncontex.json=p;
+   // jsoncontex.json=p;
     
 }
 int FastJson::fastjson_parse_object(const char* json)

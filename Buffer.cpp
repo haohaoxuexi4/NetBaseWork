@@ -13,8 +13,9 @@ readpostion     writepositon        size()
 
 #include "Buffer.hpp"
 
-Buffer::Buffer():data(1024),readposition(0),writeposition(0)
+Buffer::Buffer():data(10),readposition(0),writeposition(0)
 {
+    //printf("datasiez=%d\n",data.size());
 }
 
 Buffer::~Buffer()
@@ -74,31 +75,62 @@ void Buffer::append(const char* d,const int len) //数据插入到data中
     writeposition+=len;
     //return 0;
 }
-
 ssize_t Buffer::readDataFromFD(const int fd,int* backerror)
 {
     char extbuf[65536]={0};
     const ssize_t writeable=writeableSize();
     struct iovec vec[2];
-    vec[0].iov_base=&(*data.begin())+writeposition;
-    vec[0].iov_len=writeable;
+    vec[0].iov_base=writebegin();
+    //vec[0].iov_base=&(buf->(*data.begin())+buf->writeposition;
+    vec[0].iov_len=writeableSize();
     vec[1].iov_base=extbuf;
     vec[1].iov_len=65536;
     const int cnt=(writeable<sizeof(extbuf))? 2:1;
     ssize_t n=readv(fd,vec,cnt);
     if (n<0) {
-       // *backerror=errno_t;
+        //*backerror=errno_t;
     }
     else if (n<=writeable)
     {
+        //buf->changereadposition(n);
         writeposition+=n;
     }
     else    //n> writeable
     {
+        //buf->changewriteposition(n);
         writeposition=data.size();
         append(extbuf, n-writeable);
     }
     return n;
 }
+/*
+ssize_t readDataFromFD(Buffer* buf,const int fd,int* backerror)
+{
+    char extbuf[65536]={0};
+    const ssize_t writeable=buf->writeableSize();
+    struct iovec vec[2];
+    vec[0].iov_base=buf->writebegin();
+    //vec[0].iov_base=&(buf->(*data.begin())+buf->writeposition;
+    vec[0].iov_len=buf->writeableSize();
+    vec[1].iov_base=extbuf;
+    vec[1].iov_len=65536;
+    const int cnt=(writeable<sizeof(extbuf))? 2:1;
+    ssize_t n=readv(fd,vec,cnt);
+    if (n<0) {
+        //*backerror=errno_t;
+    }
+    else if (n<=writeable)
+    {
+        buf->changereadposition(n);
+        //writeposition+=n;
+    }
+    else    //n> writeable
+    {
+        buf->changewriteposition(n);
+        //writeposition=data.size();
+        buf->append(extbuf, n-writeable);
+    }
+    return n;
+}
 
-
+*/

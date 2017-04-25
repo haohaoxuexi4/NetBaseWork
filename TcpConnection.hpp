@@ -18,13 +18,14 @@
 #include <assert.h>
 
 class TcpConnection;
+typedef std::shared_ptr<TcpConnection> Share_tcpconnection;
 typedef enum{connecting,Connected,disConnecting,disConnected} StateType; //准备连接，连接上了，去除连接中，去除了
 typedef std::function<void(TcpConnection*)> RemoveConnection;
-typedef std::function<void (TcpConnection*,Buffer&)>  MessageCallback;
+typedef std::function<void (TcpConnection*,Buffer*)>  MessageCallback;
 class TcpConnection:noncopy
 {
 public:
-    TcpConnection(EventLoop* loop,int fd);
+    TcpConnection(EventLoop* loop,int fd,char* name,int namelen);
     ~TcpConnection();
     void ChannelReadEvent();
     void ChannelWriteEvent();
@@ -34,6 +35,7 @@ public:
     bool isConnected(){return Connected==stat_;};
     bool isDisconnected(){return disConnected==stat_;};
     void setStat(StateType type){stat_=type;};
+    void  ConnectionRead();
     
     void   setname(char* name,int len){memcpy(name_, name,len);};
     char* getname(){return name_;};
@@ -42,15 +44,18 @@ public:
     void setRemoveConnection(RemoveConnection remconn){removeConnection_=remconn;};
     void Shutdownbyown();//主动关闭连接
     void DestoryConnection();//完全移除
-    Buffer& getInputBuffer(){return iputbuffer;};
-    Buffer& getOutBudder(){return outbuffer;}
+    Buffer* getInputBuffer(){return &iputbuffer;};
+    Buffer* getOutBudder(){return &outbuffer;}
+    
+    Channel* getchannel(){return chan;};
 private:
     const int fd_;    //拥有的fd
-    char* name_;        //链接名字
+    char name_[64];        //链接名字
     StateType  stat_;
     EventLoop* loop_;
-    Channel    chan;
-    Buffer    iputbuffer; //从客户端读出来的数据
+    Channel* chan;
+    //std::unique_ptr<Channel> chan;
+    Buffer   iputbuffer; //从客户端读出来的数据
     Buffer    outbuffer; //往客户端写的数据
     MessageCallback     MessageCallback_;  //inputbuffer 读到的缓冲数据处理
     RemoveConnection    removeConnection_; 

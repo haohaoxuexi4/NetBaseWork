@@ -115,12 +115,12 @@ int acKqueue::aeApiAddEvent(Channel* chan) {
     int fd=chan->getfd();
     printf("fd=%d,mask=%d\n",chan->getfd(),mask);
     if (mask & EVFILT_READ) {
-        printf("read\n");
+        printf("aeApiAddEvent read\n");
         EV_SET(&ke, fd, EVFILT_READ, EV_ADD|EV_ENABLE, 0, 0, chan);
         if (kevent(kqfd, &ke, 1, NULL, 0, NULL) == -1) return -1;
     }
     else if (mask & EVFILT_WRITE) {
-        printf("write\n");
+        printf("aeApiAddEvent write\n");
         EV_SET(&ke, fd, EVFILT_WRITE, EV_ADD|EV_ENABLE, 0, 0, chan);
         if (kevent(kqfd, &ke, 1, NULL, 0, NULL) == -1) return -1;
         
@@ -136,12 +136,14 @@ void acKqueue::aeApiDelEvent(Channel* chan) {
     struct kevent ke;
     
     if (mask & EVFILT_READ) {
-        EV_SET(&ke, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+        printf("aeApiDelEvent read\n");
+        EV_SET(&ke, fd, EVFILT_READ, EV_DELETE, 0, 0, chan);
         kevent(kqfd, &ke, 1, NULL, 0, NULL);
         
     }
     else if (mask & EVFILT_WRITE) {
-        EV_SET(&ke, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+        printf("aeApiDelEvent write\n");
+        EV_SET(&ke, fd, EVFILT_WRITE, EV_DELETE, 0, 0, chan);
         kevent(kqfd, &ke, 1, NULL, 0, NULL);
     }
     
@@ -151,12 +153,12 @@ int acKqueue::aeApiPoll(std::vector<Channel*>* activechannel) {
     
     int retval, numevents = 0;
     
-    //if (tvp != NULL) {
-        struct timespec timeout;
-        timeout.tv_sec = 2;
-        timeout.tv_nsec = 2 * 1000;
+
+    struct timespec timeout;
+    timeout.tv_sec = 2;
+    timeout.tv_nsec = 2 * 1000;
     
-        retval=kevent(kqfd, NULL, 0, &(*events.begin()),(int)events.size(), &timeout);
+    retval=kevent(kqfd, NULL, 0, &(*events.begin()),(int)events.size(), &timeout);
 
     //} else {
       //  retval = kevent(kqfd, NULL, 0, &(*events.begin()),(int)events.size(),NULL);
@@ -168,28 +170,15 @@ int acKqueue::aeApiPoll(std::vector<Channel*>* activechannel) {
         printf("retval=%d\n",retval);
        // sleep(3);
         numevents = retval;
-        
-        for (auto iter=events.begin();iter!=events.end(); iter++) {
-            if((*iter).filter==EVFILT_READ)
-            {
-                Channel* chan=(Channel*)((*iter).udata);
-                chan->setflag((*iter).filter);
-                //chan->flags=EVFILT_READ;
-                //chan->handleReadyEvent();
-                //chan->flags=EVFILT_READ;
-                printf("ackueue EVFILE_READ fd=%d,revents=%d\n",chan->getfd(),chan->getflag());
-                activechannel->push_back(chan);
-                //printf("actie channelsize=%d",activechannel.size());
-            }
-            if((*iter).filter==EVFILT_WRITE)
-            {
-                Channel* chan= (Channel*)((*iter).udata);
-                chan->setflag((*iter).filter);
-                printf("ackueue EVFILE_WRITE fd=%d,revents=%d\n",chan->getfd(),chan->getflag());
-                activechannel->push_back(chan);
-            }
+        for (int i=0;numevents>0;numevents--,i++) {
             
+            Channel* chan1=static_cast<Channel*>(events[i].udata);
+            chan1->setflag(events[i].filter);
+            printf("ackueue ident=%d,fd=%d,revents=%d\n",events[i].ident,chan1->getfd(),chan1->getflag());
+            activechannel->push_back(chan1);
+
         }
+    
         
 
         if (retval==events.size()&& retval<1000) {
@@ -210,7 +199,9 @@ int acKqueue::aeApiPoll(std::vector<Channel*>* activechannel) {
             printf( "EPollPoller::poll()\n");
         }
     }
-    return numevents;
+    //events.clear();
+
+    return retval;
 }
 /*
 char* acKqueue::aeApiName(void) {

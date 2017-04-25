@@ -20,6 +20,7 @@ const int KqReadEvent=-1; //EVFILT_READ;
 const int KqWriteEvent=-2; //EVFILT_WRITE
 class EventLoop;
 typedef std::function<void ()> Fun;
+typedef std::function<void (int)> ReadFun;
 class Channel:public noncopy{
 public:
     Channel(EventLoop* loop,int fd);
@@ -32,7 +33,7 @@ public:
     void   setevents(int event) {events_=event;};
     int    getflag(){ return flags;};
     void   setflag(int flag) {flags=flag;};
-    int             getfd(){return fd_;};
+    const  int  getfd(){return fd_;};
     
     
     void enableReading() { events_ = KqReadEvent; addtoloop(); }
@@ -55,15 +56,16 @@ public:
     void setreadEvent(const Fun& cb)
     {
         readevent=cb;
+        //readevent=std::move(cb);
     };
     
     void setwriteEvent(const Fun& cb)
     {
-        writeEvent=cb;
+        writeEvent=std::move(cb);
     }
     void setcloseEvent(const Fun& cb)
     {
-        closeEvent=cb;
+        closeEvent=std::move(cb);
     }
 private:
     

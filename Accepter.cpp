@@ -38,15 +38,8 @@ void Accepter::handleAccetpEvent()
 {
     int clientfd=socker_.accetper();
     
-    printf("client fd=%d\n",clientfd);
+    printf("Accepter::handleAccetpEvent client fd=%d\n",clientfd);
         //封装一次连接
     connectionfun(clientfd);
-        //封装成一次连接 TcpConnection
-       // std::shared_ptr<TcpConnection> tcpconn(new TcpConnection(eventloop_,clientfd));
-       // TcpConnection tcpconn(eventloop_,clientfd);
-        
-        
-    
-    
-    
+
 }

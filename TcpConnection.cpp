@@ -8,17 +8,17 @@
 
 #include "TcpConnection.hpp"
 
-TcpConnection::TcpConnection(EventLoop* loop,int fd):fd_(fd),loop_(loop),chan(loop,fd),stat_(connecting)
+TcpConnection::TcpConnection(EventLoop* loop,int fd,char* name,int namelen):fd_(fd),loop_(loop),chan(new Channel(loop,fd)),stat_(connecting)
 {
-    chan.setreadEvent(std::bind(&TcpConnection::ChannelReadEvent,this));
-    chan.setwriteEvent(std::bind(&TcpConnection::ChannelWriteEvent,this));
-    chan.setcloseEvent(std::bind(&TcpConnection::ChannelCloseEvent,this));
-    
-    chan.enableReading();
-    setStat(Connected);
+    memcpy(name_, name, namelen);
+    chan->setreadEvent(std::bind(&TcpConnection::ChannelReadEvent,this));
+    chan->setwriteEvent(std::bind(&TcpConnection::ChannelWriteEvent,this));
+    chan->setcloseEvent(std::bind(&TcpConnection::ChannelCloseEvent,this));
+    printf("cpConnection::TcpConnection\n");
 }
 TcpConnection::~TcpConnection()
 {
+    printf("~~TcpConnection()\n");
     loop_=nullptr;
     close(fd_);
 }
@@ -33,17 +33,17 @@ void TcpConnection::send(char* d,int len)
     else if(outbuffer.readableSize()==0)
     {
         //
-        ssize_t n=write(chan.getfd(), d, len);
+        ssize_t n=write(chan->getfd(), d, len);
         if (n<0) {
             //write 错误，数据插入到outbuffer ,并注册写事件
             outbuffer.append(d, len);
-            chan.enableWriting();
+            chan->enableWriting();
         }
         else if (n>0&&n<len)
         {
             //多余部分，插入到outbuffer 并注册写事件
             outbuffer.append(d+n, len-(int)n);
-            chan.enableReadingWriting();
+            chan->enableReadingWriting();
         }
         //n=len  一次写完，ok
     }
@@ -56,13 +56,20 @@ void Buffer::send(string sd,int len)
 
 }
  */
+void TcpConnection::ConnectionRead()
+{
+    setStat(Connected);
+    chan->enableReading();
+}
 void TcpConnection::Shutdownbyown()
 {
-
+    ChannelCloseEvent();
 }
 void TcpConnection::DestoryConnection()
 {
-
+    //kqueue 中移除
+    chan->removetoloop();
+    delete this;
 }
 void TcpConnection::ChannelCloseEvent()
 {
@@ -75,16 +82,18 @@ void TcpConnection::ChannelReadEvent()
     //从fd中read 数据，
     //reader(chan.getfd());
     int backerror;
-    ssize_t n=iputbuffer.readDataFromFD(chan.getfd(), &backerror);
+    ssize_t n=iputbuffer.readDataFromFD(chan->getfd(),&backerror);
     if (n>0)
     {
         // message callback
+        printf("receivebuf=%s\n",iputbuffer.readbegin());
         if (MessageCallback_) {
-            MessageCallback_(this,iputbuffer);
+            MessageCallback_(this,&iputbuffer);
         }
         
     }else if (n==0)
     {
+        printf("TcpConnection::ChannelReadEvent n=0\n");
         //socket read 返回0 客户端断了连接
         ChannelCloseEvent();
     }
@@ -99,7 +108,7 @@ void TcpConnection::ChannelWriteEvent()
 {
     //kqueue 触发的写事件的处理函数  主要处理outbuffer
 
-    ssize_t n=write(chan.getfd(), outbuffer.readbegin(), outbuffer.readableSize());
+    ssize_t n=write(chan->getfd(), outbuffer.readbegin(), outbuffer.readableSize());
     if (n>0)
     {
         outbuffer.changereadposition(n);
@@ -107,7 +116,7 @@ void TcpConnection::ChannelWriteEvent()
         {
             outbuffer.changereadposition(n);
             //取消 关注write 事件
-            chan.disableWriting();
+            chan->disableWriting();
         }
         else
         {

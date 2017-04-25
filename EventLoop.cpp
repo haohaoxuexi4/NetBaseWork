@@ -30,7 +30,6 @@ void EventLoop::removechannel(Channel* channel)
 }
 void EventLoop::loop()
 {
-    printf("loop\n");
     while(!quit)
     {
         ChannelVector.clear();
@@ -50,6 +49,15 @@ void EventLoop::loop()
         gettimeofday(&nowtime, NULL);
         for (auto itertime=TimerVector.begin(); itertime!=TimerVector.end(); itertime++) {
             
+        }
+         */
+        
+        //处理传递的函数
+        /*
+        for(auto iter1=allFunInloop.begin();iter1!=allFunInloop.end();iter1++ )
+        {
+            FunInloop cb=*iter1;
+            cb();
         }
          */
     }
