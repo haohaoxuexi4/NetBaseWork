@@ -69,12 +69,11 @@ void TcpConnection::DestoryConnection()
 {
     //kqueue 中移除
     chan->removetoloop();
-    delete this;
 }
 void TcpConnection::ChannelCloseEvent()
 {
     //首先把自己从TcpServer  connectionmap 中移除
-    removeConnection_(this);
+    removeConnection_(this->shared_from_this());
     
 }
 void TcpConnection::ChannelReadEvent()
@@ -88,7 +87,7 @@ void TcpConnection::ChannelReadEvent()
         // message callback
         printf("receivebuf=%s\n",iputbuffer.readbegin());
         if (MessageCallback_) {
-            MessageCallback_(this,&iputbuffer);
+            MessageCallback_(this->shared_from_this(),&iputbuffer);
         }
         
     }else if (n==0)
@@ -117,6 +116,10 @@ void TcpConnection::ChannelWriteEvent()
             outbuffer.changereadposition(n);
             //取消 关注write 事件
             chan->disableWriting();
+            if(stat_==disConnecting)
+            {
+                DestoryConnection();
+            }
         }
         else
         {

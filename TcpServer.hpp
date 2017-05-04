@@ -17,7 +17,7 @@
 #include "EventLoop.hpp"
 #include "TcpConnection.hpp"
 
-typedef std::function<void(TcpConnection*,Buffer*)> MessageCallback;
+typedef std::function<void(std::shared_ptr<TcpConnection>,Buffer*)> MessageCallback;
 class TcpServer:noncopy
 {
 public:
@@ -25,7 +25,7 @@ public:
     ~TcpServer();
     void start();
     void newTcpConnection(const int fd);
-    void remove_connection_from_connectionMap(TcpConnection* conn);
+    void remove_connection_from_connectionMap(std::shared_ptr<TcpConnection> conn);
     void setMessageCallback(MessageCallback& back){messagecallback=back;};
     
 private:

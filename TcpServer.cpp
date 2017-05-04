@@ -25,7 +25,7 @@ void TcpServer::start()
     unique_accepter->listen();
     loop_->loop();
 }
-void TcpServer::remove_connection_from_connectionMap(TcpConnection *conn)
+void TcpServer::remove_connection_from_connectionMap(std::shared_ptr<TcpConnection> conn)
 {
     assert(conn!=nullptr);
     char* name=conn->getname();

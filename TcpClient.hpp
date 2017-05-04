@@ -15,7 +15,8 @@
 class TcpClient:noncopy
 {
 public:
-    
+    TcpClient();
+    ~TcpClient();
 private:
     
 };

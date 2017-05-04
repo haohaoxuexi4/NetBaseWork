@@ -20,9 +20,9 @@
 class TcpConnection;
 typedef std::shared_ptr<TcpConnection> Share_tcpconnection;
 typedef enum{connecting,Connected,disConnecting,disConnected} StateType; //准备连接，连接上了，去除连接中，去除了
-typedef std::function<void(TcpConnection*)> RemoveConnection;
-typedef std::function<void (TcpConnection*,Buffer*)>  MessageCallback;
-class TcpConnection:noncopy
+typedef std::function<void(std::shared_ptr<TcpConnection>)> RemoveConnection;
+typedef std::function<void (std::shared_ptr<TcpConnection>,Buffer*)>  MessageCallback;
+class TcpConnection:noncopy,public std::enable_shared_from_this<TcpConnection>
 {
 public:
     TcpConnection(EventLoop* loop,int fd,char* name,int namelen);
