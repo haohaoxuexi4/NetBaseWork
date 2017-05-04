@@ -11,14 +11,16 @@
 
 #include <stdio.h>
 #include "noncopy.h"
-
+#include "EventLoop.hpp"
 class TcpClient:noncopy
 {
 public:
     TcpClient();
     ~TcpClient();
+    void connect();
+    void start();
 private:
-    
+    std::unique_ptr<EventLoop> loop;
 };
 
 #endif /* TcpClient_hpp */

@@ -14,7 +14,7 @@
 #include "Channel.hpp"
 #include <vector>
 #include "acKqueue.hpp"
-#include "Timer.hpp"
+#include "timerqueue.h"
 
 using namespace std;
 
@@ -29,9 +29,7 @@ public:
     void removechannel(Channel* channel);
     
     //timer 定时器操作
-    void addtimer(Timer* ptime);
-    void canceltimer(Timer* ptime);
-    
+    void addtimer(Timer& ptime);
     //loop funcation 主要处理运行传递下来的函数对象
     void addFunInloop(const FunInloop& cb){cb();}//allFunInloop.push_back(cb);}
 private:
@@ -39,7 +37,7 @@ private:
     std::vector<Channel*> ChannelVector;
     //acKqueue* ackqueue;
     std::unique_ptr<acKqueue> unique_ackqueue;
-    std::vector<Timer*> TimerVector;
+    Timerqueue timerqueue;    //定时器队列
     
     std::vector<FunInloop> allFunInloop;
 };
