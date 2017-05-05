@@ -32,7 +32,7 @@ class Timer
 public:
     Timer(Timercallback callback,uint64_t micros,bool isevery=false):callback_(callback),isRunevery(isevery),interval_time(micros*1000),time_(Now()+micros*1000)
     {
-        printf("timer init time_=%ld\n",time_);
+        printf("timer init time_=%lluu\n",time_);
     }
     ~Timer(){};
     

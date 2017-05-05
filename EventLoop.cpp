@@ -28,6 +28,10 @@ void EventLoop::removechannel(Channel* channel)
     assert(channel!=NULL);
     unique_ackqueue->aeApiDelEvent(channel);
 }
+void EventLoop::addtimer(Timer& ptime)
+{
+    timerqueue.add(ptime);
+}
 void EventLoop::loop()
 {
     while(!quit)
@@ -44,13 +48,7 @@ void EventLoop::loop()
         }
         
         //处理定时事件
-        /*
-        struct timeval nowtime;
-        gettimeofday(&nowtime, NULL);
-        for (auto itertime=TimerVector.begin(); itertime!=TimerVector.end(); itertime++) {
-            
-        }
-         */
+        timerqueue.handelontime();
         
         //处理传递的函数
         /*

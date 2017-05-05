@@ -26,7 +26,7 @@ public:
     void start();
     void newTcpConnection(const int fd);
     void remove_connection_from_connectionMap(std::shared_ptr<TcpConnection> conn);
-    void setMessageCallback(MessageCallback& back){messagecallback=back;};
+    void setMessageCallback(MessageCallback back){messagecallback=back;};
     
 private:
     

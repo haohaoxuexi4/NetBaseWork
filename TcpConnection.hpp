@@ -30,7 +30,9 @@ public:
     void ChannelReadEvent();
     void ChannelWriteEvent();
     void ChannelCloseEvent();
-    void send(char* d,int len);
+    
+    void send(char* d,int len);     //发送数据
+    void send(void* d,int len);
     
     bool isConnected(){return Connected==stat_;};
     bool isDisconnected(){return disConnected==stat_;};

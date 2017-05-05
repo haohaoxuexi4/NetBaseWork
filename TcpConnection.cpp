@@ -22,6 +22,10 @@ TcpConnection::~TcpConnection()
     loop_=nullptr;
     close(fd_);
 }
+void TcpConnection::send(void *d, int len)
+{
+    send(static_cast<char*>(d),len);
+}
 void TcpConnection::send(char* d,int len)
 {
     assert(d!=nullptr);
